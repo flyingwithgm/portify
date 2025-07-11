@@ -3,209 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResumeForge - AI-Powered Resume Builder</title>
-    <meta name="description" content="Build sleek, professional resumes with AI. Export to PDF in one click.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <title>ResumeForge Pro | AI-Powered Resume Builder</title>
+    <meta name="description" content="Craft stunning, ATS-friendly resumes with AI assistance. Export to PDF in one click.">
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                    serif: ['Playfair Display', 'serif']
+                },
                 extend: {
                     colors: {
                         primary: {
-                            light: '#3b82f6',
-                            dark: '#6366f1',
-                            custom: '#10b981'
+                            light: '#6366f1',  // Indigo
+                            dark: '#8b5cf6',   // Violet
+                            custom: '#10b981'  // Emerald
+                        },
+                        secondary: {
+                            light: '#f43f5e',  // Rose
+                            dark: '#ec4899'    // Pink
                         }
                     },
                     animation: {
-                        fadeIn: 'fadeIn 0.3s ease-out',
-                        float: 'float 3s ease-in-out infinite'
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                     },
                     keyframes: {
                         fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '0%': { opacity: '0', transform: 'translateY(8px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' }
                         },
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-5px)' }
+                            '50%': { transform: 'translateY(-6px)' }
                         }
                     }
                 }
             }
         }
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            /* Template Styles */
-            .resume-modern {
-                @apply space-y-6;
-                .section-title {
-                    @apply text-lg font-bold mb-3 pb-2 border-b border-gray-200 dark:border-gray-700;
-                }
+    
+    <style type="text/css">
+        /* Custom Styles */
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        
+        .resume-modern {
+            .section-title {
+                @apply font-serif text-xl font-semibold mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white;
             }
-            .resume-classic {
-                @apply space-y-4 border-l-4 border-primary-light dark:border-primary-dark pl-4;
-                .section-title {
-                    @apply text-xl font-bold mb-2 uppercase tracking-wider text-gray-500 dark:text-gray-400;
-                }
+            .experience-item, .education-item {
+                @apply mb-4;
             }
-            .resume-minimalist {
-                @apply space-y-8;
-                .section-title {
-                    @apply text-sm font-semibold mb-1 text-gray-500 dark:text-gray-400 border-b border-dashed pb-1;
-                }
-                h1, h2, h3, h4 {
-                    @apply font-normal;
-                }
+        }
+        
+        .resume-classic {
+            @apply border-l-2 border-primary-light dark:border-primary-dark pl-6;
+            .section-title {
+                @apply uppercase tracking-widest text-sm font-bold mb-2 text-primary-light dark:text-primary-dark;
             }
-            .resume-creative {
-                @apply space-y-6;
-                .section-title {
-                    @apply text-lg font-bold mb-3 flex items-center before:content-[""] before:block before:w-2 before:h-6 before:bg-primary-light dark:before:bg-primary-dark before:mr-2;
-                }
-                .experience-item, .education-item {
-                    @apply relative pl-6 before:absolute before:left-0 before:top-2 before:w-3 before:h-3 before:rounded-full before:bg-primary-light dark:before:bg-primary-dark;
-                }
+        }
+        
+        .resume-minimalist {
+            .section-title {
+                @apply text-xs font-medium tracking-widest mb-1 text-gray-500 dark:text-gray-400 border-b pb-1;
             }
-
-            /* Global Styles */
-            .animate-smooth {
-                @apply transition-all duration-300 ease-in-out;
+            h1, h2, h3, h4 {
+                @apply font-normal;
             }
-            .input-ring {
-                @apply focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark;
+            .experience-item, .education-item {
+                @apply mb-3;
             }
-            .btn-primary {
-                @apply bg-primary-light hover:bg-primary-light/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-white font-medium rounded-lg px-5 py-2.5 text-center animate-smooth;
+        }
+        
+        .resume-creative {
+            .section-title {
+                @apply font-serif text-lg font-bold mb-3 flex items-center before:content-[''] before:block before:w-2 before:h-6 before:bg-gradient-to-b from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark before:mr-2;
             }
-            .btn-secondary {
-                @apply border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 font-medium rounded-lg px-5 py-2.5 text-center animate-smooth;
+            .experience-item, .education-item {
+                @apply relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-primary-light dark:before:bg-primary-dark;
             }
-            .card {
-                @apply bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden animate-smooth;
-            }
-            .form-card {
-                @apply card p-6;
-            }
-            .preview-card {
-                @apply card p-8 h-full;
-            }
-            .theme-custom {
-                --tw-primary: #10b981;
-            }
-            .theme-custom .btn-primary, .theme-custom .text-primary, .theme-custom .border-primary, .theme-custom .bg-primary {
-                background-color: var(--tw-primary) !important;
-                color: white !important;
-                border-color: var(--tw-primary) !important;
-            }
-            .theme-custom .text-primary {
-                color: var(--tw-primary) !important;
-            }
-            .photo-preview {
-                @apply w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-md mx-auto mb-4;
-            }
+        }
+        
+        .photo-preview {
+            @apply w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg mx-auto mb-4;
+        }
+        
+        .btn-primary {
+            @apply bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark text-white font-medium rounded-lg px-6 py-3 text-center transition-all duration-300 hover:opacity-90 hover:shadow-lg;
+        }
+        
+        .btn-secondary {
+            @apply border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 font-medium rounded-lg px-6 py-3 text-center transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700;
+        }
+        
+        .input-field {
+            @apply bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-transparent block w-full p-3 transition-all duration-200;
+        }
+        
+        .card {
+            @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md;
+        }
+        
+        .badge {
+            @apply bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-sm font-medium;
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen animate-smooth">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen font-sans antialiased">
     <!-- Landing Page -->
     <div id="landing-page" class="min-h-screen flex flex-col">
         <!-- Navigation -->
-        <nav class="bg-white dark:bg-gray-800 shadow-sm">
+        <nav class="bg-white dark:bg-gray-800 shadow-sm py-4">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16 items-center">
-                    <div class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-primary-light dark:text-primary-dark">
-                            <path fill-rule="evenodd" d="M12 6.75a5.25 5.25 0 016.775-5.025.75.75 0 01.313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.64l3.318-3.319a.75.75 0 011.248.313 5.25 5.25 0 01-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 112.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0112 6.75zM4.117 19.125a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="text-xl font-bold text-primary-light dark:text-primary-dark">ResumeForge</span>
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5">
+                                <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark gradient-text">ResumeForge</span>
                     </div>
-                    <button id="start-building" class="btn-primary flex items-center gap-2 animate-float">
+                    <button id="start-building" class="btn-primary flex items-center space-x-2 animate-float">
                         <i class="fas fa-bolt"></i>
-                        Start Building
+                        <span>Start Building</span>
                     </button>
                 </div>
             </div>
         </nav>
 
         <!-- Hero Section -->
-        <main class="flex-grow flex items-center">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
+        <main class="flex-grow flex items-center py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
-                    <h1 class="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary-light to-primary-dark dark:from-primary-dark dark:to-primary-light bg-clip-text text-transparent">Build a resume that gets you hired</h1>
-                    <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">AI-powered resume builder with professional templates and instant PDF export.</p>
-                    <div class="flex justify-center gap-4">
-                        <button id="start-building-2" class="btn-primary px-8 py-3 text-lg flex items-center gap-2 hover:scale-105 transform animate-smooth">
-                            <i class="fas fa-bolt"></i>
-                            Start Building Now
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark gradient-text leading-tight">
+                        Craft Resumes That <br>Get You Hired
+                    </h1>
+                    <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                        AI-powered resume builder with professional templates and instant PDF export.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button id="start-building-2" class="btn-primary px-8 py-4 text-lg flex items-center justify-center space-x-2">
+                            <i class="fas fa-bolt animate-pulse-slow"></i>
+                            <span>Start Building - It's Free</span>
                         </button>
+                        <button class="btn-secondary px-8 py-4 text-lg flex items-center justify-center space-x-2">
+                            <i class="fas fa-play-circle"></i>
+                            <span>Watch Demo</span>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-16 max-w-4xl mx-auto">
+                        <div class="relative">
+                            <div class="absolute -inset-4 bg-gradient-to-r from-primary-light/20 to-secondary-light/20 dark:from-primary-dark/20 dark:to-secondary-dark/20 rounded-xl blur-md"></div>
+                            <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="ResumeForge Preview" class="w-full h-auto">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
 
         <!-- Features Section -->
-        <section class="bg-gray-100 dark:bg-gray-800 py-16">
+        <section class="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-center mb-12">Why Choose ResumeForge?</h2>
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark gradient-text inline-block">
+                        Why Choose ResumeForge?
+                    </h2>
+                    <p class="mt-4 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                        Everything you need to create a resume that stands out from the crowd
+                    </p>
+                </div>
+                
                 <div class="grid md:grid-cols-3 gap-8">
-                    <div class="card p-6 text-center hover:scale-[1.02] transform animate-smooth">
-                        <div class="text-primary-light dark:text-primary-dark text-4xl mb-4">
-                            <i class="fas fa-robot"></i>
+                    <div class="card p-6 transform transition-all hover:-translate-y-2">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center mb-4">
+                            <i class="fas fa-robot text-white text-xl"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-2">AI-Powered Assistant</h3>
-                        <p class="text-gray-600 dark:text-gray-300">Get smart suggestions for bullet points, skills, and summaries.</p>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Get smart suggestions for bullet points, skills, and summaries tailored to your industry.
+                        </p>
                     </div>
-                    <div class="card p-6 text-center hover:scale-[1.02] transform animate-smooth">
-                        <div class="text-primary-light dark:text-primary-dark text-4xl mb-4">
-                            <i class="fas fa-file-pdf"></i>
+                    
+                    <div class="card p-6 transform transition-all hover:-translate-y-2">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center mb-4">
+                            <i class="fas fa-file-pdf text-white text-xl"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-2">One-Click PDF Export</h3>
-                        <p class="text-gray-600 dark:text-gray-300">Download print-ready resumes that pass ATS scanners.</p>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Download print-ready resumes optimized for ATS scanners and human readers.
+                        </p>
                     </div>
-                    <div class="card p-6 text-center hover:scale-[1.02] transform animate-smooth">
-                        <div class="text-primary-light dark:text-primary-dark text-4xl mb-4">
-                            <i class="fas fa-palette"></i>
+                    
+                    <div class="card p-6 transform transition-all hover:-translate-y-2">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center mb-4">
+                            <i class="fas fa-palette text-white text-xl"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-2">4 Premium Templates</h3>
-                        <p class="text-gray-600 dark:text-gray-300">Modern, Classic, Minimalist, and Creative designs.</p>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Choose from Modern, Classic, Minimalist, and Creative designs for any profession.
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Footer -->
-        <footer class="bg-white dark:bg-gray-800 py-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-            <span class="font-bold">ResumeForge</span> by GM73 Technologies © 2025
+        <footer class="bg-white dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <div class="flex justify-center mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5">
+                                <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">
+                        &copy; 2023 ResumeForge by GM73 Technologies. All rights reserved.
+                    </p>
+                </div>
+            </div>
         </footer>
     </div>
 
     <!-- Resume Builder (initially hidden) -->
     <div id="resume-builder" class="hidden min-h-screen flex flex-col">
         <!-- Navigation -->
-        <nav class="bg-white dark:bg-gray-800 shadow-sm">
+        <nav class="bg-white dark:bg-gray-800 shadow-sm py-4 sticky top-0 z-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16 items-center">
-                    <div class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-primary-light dark:text-primary-dark">
-                            <path fill-rule="evenodd" d="M12 6.75a5.25 5.25 0 016.775-5.025.75.75 0 01.313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.64l3.318-3.319a.75.75 0 011.248.313 5.25 5.25 0 01-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 112.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0112 6.75zM4.117 19.125a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="text-xl font-bold text-primary-light dark:text-primary-dark">ResumeForge</span>
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5">
+                                <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark gradient-text">ResumeForge</span>
                     </div>
+                    
                     <div class="flex items-center space-x-4">
                         <!-- Theme Selector -->
                         <div class="relative">
-                            <select id="theme-selector" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark">
-                                <option value="light">Light Theme</option>
-                                <option value="dark">Dark Theme</option>
-                                <option value="custom">Custom Theme</option>
+                            <select id="theme-selector" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-transparent">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="custom">Custom</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
                                 <i class="fas fa-chevron-down text-xs"></i>
@@ -219,7 +285,7 @@
                         
                         <!-- Template Selector -->
                         <div class="relative">
-                            <select id="template-selector" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark">
+                            <select id="template-selector" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-transparent">
                                 <option value="modern">Modern</option>
                                 <option value="classic">Classic</option>
                                 <option value="minimalist">Minimalist</option>
@@ -231,7 +297,7 @@
                         </div>
                         
                         <!-- Export Button -->
-                        <button id="export-pdf" class="btn-primary flex items-center gap-2 hover:scale-105 transform animate-smooth">
+                        <button id="export-pdf" class="btn-primary flex items-center space-x-2 px-4 py-2">
                             <i class="fas fa-file-export"></i>
                             <span>Export PDF</span>
                         </button>
@@ -241,16 +307,16 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="flex-grow">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="flex-grow py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Progress Tracker -->
-                <div class="mb-8">
+                <div class="mb-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
                     <div class="flex justify-between items-center mb-2">
                         <span id="progress-text" class="text-sm font-medium">0% Complete</span>
                         <span id="sections-filled" class="text-sm text-gray-500 dark:text-gray-400">0 of 6 sections filled</span>
                     </div>
                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                        <div id="progress-bar" class="bg-primary-light dark:bg-primary-dark h-2.5 rounded-full" style="width: 0%"></div>
+                        <div id="progress-bar" class="bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
 
@@ -259,131 +325,149 @@
                     <!-- Form Column -->
                     <div class="space-y-6">
                         <!-- AI Assistant -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-robot mr-2"></i>
-                                AI Resume Assistant
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                                <span>AI Resume Assistant</span>
                             </h2>
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 <div>
-                                    <label for="ai-prompt" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Need help? Ask the AI:</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" id="ai-prompt" class="flex-grow bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="E.g., 'Improve my summary for a software engineer role'">
+                                    <label for="ai-prompt" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Need help? Ask the AI:</label>
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="ai-prompt" class="flex-grow input-field" placeholder="E.g., 'Improve my summary for a software engineer role'">
                                         <button id="ai-submit" class="btn-primary px-4">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div id="ai-response" class="hidden p-3 bg-blue-50 dark:bg-gray-700 rounded-lg text-sm">
+                                <div id="ai-response" class="hidden p-4 bg-blue-50 dark:bg-gray-700 rounded-lg animate-fade-in">
                                     <div class="flex justify-between items-start mb-2">
-                                        <span class="font-medium">AI Suggestion:</span>
+                                        <span class="font-medium text-sm">AI Suggestion:</span>
                                         <button id="ai-copy" class="text-gray-500 hover:text-primary-light dark:hover:text-primary-dark">
                                             <i class="fas fa-copy"></i>
                                         </button>
                                     </div>
-                                    <p id="ai-text" class="text-gray-700 dark:text-gray-300"></p>
+                                    <p id="ai-text" class="text-gray-700 dark:text-gray-300 text-sm"></p>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <button class="ai-quick-prompt btn-secondary text-xs py-1.5" data-prompt="Suggest 3 bullet points for my current job">Bullet Points</button>
-                                    <button class="ai-quick-prompt btn-secondary text-xs py-1.5" data-prompt="Improve my professional summary">Summary</button>
-                                    <button class="ai-quick-prompt btn-secondary text-xs py-1.5" data-prompt="Suggest 5 skills for my field">Skills</button>
-                                    <button class="ai-quick-prompt btn-secondary text-xs py-1.5" data-prompt="Make this more ATS-friendly">ATS Fix</button>
+                                    <button class="ai-quick-prompt btn-secondary text-xs py-2" data-prompt="Suggest 3 bullet points for my current job">
+                                        <i class="fas fa-list-ul mr-1"></i> Bullet Points
+                                    </button>
+                                    <button class="ai-quick-prompt btn-secondary text-xs py-2" data-prompt="Improve my professional summary">
+                                        <i class="fas fa-align-left mr-1"></i> Summary
+                                    </button>
+                                    <button class="ai-quick-prompt btn-secondary text-xs py-2" data-prompt="Suggest 5 skills for my field">
+                                        <i class="fas fa-tools mr-1"></i> Skills
+                                    </button>
+                                    <button class="ai-quick-prompt btn-secondary text-xs py-2" data-prompt="Make this more ATS-friendly">
+                                        <i class="fas fa-check-circle mr-1"></i> ATS Fix
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Personal Info Section -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-user mr-2"></i>
-                                Personal Information
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <span>Personal Information</span>
                             </h2>
                             <div class="space-y-4">
                                 <div class="flex flex-col items-center">
                                     <div class="relative group">
-                                        <img id="photo-preview" src="https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff&size=128" class="photo-preview">
-                                        <label for="photo-upload" class="absolute bottom-0 right-0 bg-primary-light dark:bg-primary-dark text-white p-2 rounded-full cursor-pointer group-hover:scale-110 transform animate-smooth">
+                                        <img id="photo-preview" src="https://ui-avatars.com/api/?name=John+Doe&background=6366f1&color=fff&size=128" class="photo-preview">
+                                        <label for="photo-upload" class="absolute bottom-0 right-0 bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark text-white p-2 rounded-full cursor-pointer transform transition-all duration-300 hover:scale-110">
                                             <i class="fas fa-camera text-sm"></i>
                                             <input type="file" id="photo-upload" accept="image/*" class="hidden">
                                         </label>
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="full-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Full Name*</label>
-                                    <input type="text" id="full-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="John Doe" required>
+                                    <label for="full-name" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Full Name*</label>
+                                    <input type="text" id="full-name" class="input-field" placeholder="John Doe" required>
                                     <p id="name-error" class="hidden mt-1 text-sm text-red-600 dark:text-red-400">Please enter your name</p>
                                 </div>
                                 <div>
-                                    <label for="job-title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Job Title*</label>
-                                    <input type="text" id="job-title" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Software Engineer" required>
+                                    <label for="job-title" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Job Title*</label>
+                                    <input type="text" id="job-title" class="input-field" placeholder="Software Engineer" required>
                                 </div>
                                 <div>
-                                    <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email*</label>
-                                    <input type="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="john@example.com" required>
+                                    <label for="email" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Email*</label>
+                                    <input type="email" id="email" class="input-field" placeholder="john@example.com" required>
                                     <p id="email-error" class="hidden mt-1 text-sm text-red-600 dark:text-red-400">Please enter a valid email</p>
                                 </div>
                                 <div>
-                                    <label for="phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone</label>
-                                    <input type="tel" id="phone" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="(123) 456-7890">
+                                    <label for="phone" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+                                    <input type="tel" id="phone" class="input-field" placeholder="(123) 456-7890">
                                 </div>
                                 <div>
-                                    <label for="address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Address</label>
-                                    <input type="text" id="address" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="City, Country">
+                                    <label for="address" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                                    <input type="text" id="address" class="input-field" placeholder="City, Country">
                                 </div>
                                 <div>
-                                    <label for="summary" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Professional Summary*</label>
-                                    <textarea id="summary" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Briefly describe your professional background and skills" required></textarea>
+                                    <label for="summary" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Professional Summary*</label>
+                                    <textarea id="summary" rows="3" class="input-field" placeholder="Briefly describe your professional background and skills" required></textarea>
                                 </div>
                                 <div>
-                                    <label for="portfolio-url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Portfolio/LinkedIn URL</label>
-                                    <input type="url" id="portfolio-url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="https://linkedin.com/in/yourname">
+                                    <label for="portfolio-url" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Portfolio/LinkedIn URL</label>
+                                    <input type="url" id="portfolio-url" class="input-field" placeholder="https://linkedin.com/in/yourname">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Work Experience Section -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-briefcase mr-2"></i>
-                                Work Experience
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-briefcase text-white"></i>
+                                </div>
+                                <span>Work Experience</span>
                             </h2>
                             <div id="experience-fields" class="space-y-4">
                                 <!-- Experience fields will be added here dynamically -->
                             </div>
-                            <button id="add-experience" class="mt-4 btn-secondary w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <button id="add-experience" class="mt-4 btn-secondary w-full flex items-center justify-center space-x-2 py-3">
                                 <i class="fas fa-plus"></i>
-                                Add Experience
+                                <span>Add Experience</span>
                             </button>
                         </div>
 
                         <!-- Education Section -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-graduation-cap mr-2"></i>
-                                Education
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-graduation-cap text-white"></i>
+                                </div>
+                                <span>Education</span>
                             </h2>
                             <div id="education-fields" class="space-y-4">
                                 <!-- Education fields will be added here dynamically -->
                             </div>
-                            <button id="add-education" class="mt-4 btn-secondary w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <button id="add-education" class="mt-4 btn-secondary w-full flex items-center justify-center space-x-2 py-3">
                                 <i class="fas fa-plus"></i>
-                                Add Education
+                                <span>Add Education</span>
                             </button>
                         </div>
 
                         <!-- Skills Section -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-tools mr-2"></i>
-                                Skills
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-tools text-white"></i>
+                                </div>
+                                <span>Skills</span>
                             </h2>
                             <div id="skills-container">
-                                <div class="flex flex-wrap gap-2" id="skills-list">
+                                <div class="flex flex-wrap gap-2 mb-4" id="skills-list">
                                     <!-- Skills will be added here dynamically -->
                                 </div>
-                                <div class="mt-4 flex">
-                                    <input type="text" id="skill-input" class="flex-grow bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Add a skill">
-                                    <button id="add-skill" class="btn-primary rounded-l-none px-4 hover:bg-primary-light/90 dark:hover:bg-primary-dark/90">
+                                <div class="flex">
+                                    <input type="text" id="skill-input" class="flex-grow input-field rounded-r-none" placeholder="Add a skill (e.g., JavaScript)">
+                                    <button id="add-skill" class="btn-primary rounded-l-none px-4">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
@@ -391,48 +475,54 @@
                         </div>
 
                         <!-- Projects Section -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-project-diagram mr-2"></i>
-                                Projects
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-project-diagram text-white"></i>
+                                </div>
+                                <span>Projects</span>
                             </h2>
                             <div id="projects-fields" class="space-y-4">
                                 <!-- Project fields will be added here dynamically -->
                             </div>
-                            <button id="add-project" class="mt-4 btn-secondary w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <button id="add-project" class="mt-4 btn-secondary w-full flex items-center justify-center space-x-2 py-3">
                                 <i class="fas fa-plus"></i>
-                                Add Project
+                                <span>Add Project</span>
                             </button>
                         </div>
 
                         <!-- Cover Letter Section -->
-                        <div class="form-card">
-                            <h2 class="section-title">
-                                <i class="fas fa-envelope mr-2"></i>
-                                Cover Letter
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark flex items-center justify-center">
+                                    <i class="fas fa-envelope text-white"></i>
+                                </div>
+                                <span>Cover Letter</span>
                             </h2>
                             <div class="space-y-4">
                                 <div>
-                                    <label for="cover-letter" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Customize your cover letter</label>
-                                    <textarea id="cover-letter" rows="5" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Write a compelling cover letter that complements your resume..."></textarea>
+                                    <label for="cover-letter" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Customize your cover letter</label>
+                                    <textarea id="cover-letter" rows="5" class="input-field" placeholder="Write a compelling cover letter that complements your resume..."></textarea>
                                 </div>
-                                <button id="generate-cover-letter" class="btn-secondary w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <button id="generate-cover-letter" class="btn-secondary w-full flex items-center justify-center space-x-2 py-3">
                                     <i class="fas fa-magic"></i>
-                                    Generate with AI
+                                    <span>Generate with AI</span>
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Preview Column -->
-                    <div class="sticky top-8 h-fit">
-                        <div class="preview-card">
-                            <h2 class="text-2xl font-bold mb-6 text-center text-primary-light dark:text-primary-dark">Resume Preview</h2>
+                    <div class="sticky top-24 h-fit">
+                        <div class="card p-8">
+                            <h2 class="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark gradient-text">
+                                Resume Preview
+                            </h2>
                             <div id="resume-preview" class="resume-modern">
                                 <!-- Resume preview will be generated here -->
                                 <div id="personal-preview" class="text-center mb-6">
                                     <div class="flex justify-center mb-3">
-                                        <img id="preview-photo" src="https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff&size=128" class="photo-preview">
+                                        <img id="preview-photo" src="https://ui-avatars.com/api/?name=John+Doe&background=6366f1&color=fff&size=128" class="photo-preview">
                                     </div>
                                     <h1 id="preview-name" class="text-3xl font-bold mb-1">John Doe</h1>
                                     <h2 id="preview-title" class="text-xl text-gray-600 dark:text-gray-300 mb-2">Software Engineer</h2>
@@ -489,9 +579,9 @@
                                     <h3 class="section-title">SKILLS</h3>
                                     <div class="flex flex-wrap gap-2">
                                         <!-- Skills will be added here -->
-                                        <span class="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm">JavaScript</span>
-                                        <span class="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm">React</span>
-                                        <span class="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm">Node.js</span>
+                                        <span class="badge">JavaScript</span>
+                                        <span class="badge">React</span>
+                                        <span class="badge">Node.js</span>
                                     </div>
                                 </div>
                                 
@@ -514,8 +604,12 @@
         </main>
 
         <!-- Footer -->
-        <footer class="bg-white dark:bg-gray-800 py-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-            <span class="font-bold">ResumeForge</span> by GM73 Technologies © 2025
+        <footer class="bg-white dark:bg-gray-800 py-6 border-t border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+                    <span class="font-bold">ResumeForge</span> by GM73 Technologies © 2023
+                </div>
+            </div>
         </footer>
     </div>
 
@@ -656,6 +750,7 @@
             landingPage.classList.add('hidden');
             resumeBuilder.classList.remove('hidden');
             document.title = "ResumeForge - Build Your Resume";
+            window.scrollTo(0, 0);
         }
         
         // Handle theme change
@@ -709,14 +804,20 @@
         // Handle photo upload
         function handlePhotoUpload(e) {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    previewPhoto.src = event.target.result;
-                    updatePreview();
-                };
-                reader.readAsDataURL(file);
+            if (!file) return;
+            
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Please select an image smaller than 2MB');
+                return;
             }
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                previewPhoto.src = event.target.result;
+                updatePreview();
+                saveFormData();
+            };
+            reader.readAsDataURL(file);
         }
         
         // Export to PDF
@@ -727,33 +828,50 @@
             // Temporarily hide the export button to avoid it appearing in the PDF
             exportPdfBtn.classList.add('hidden');
             
+            // Show loading state
+            const originalText = exportPdfBtn.innerHTML;
+            exportPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+            
             html2canvas(element, {
                 scale: 2,
                 logging: false,
                 useCORS: true,
-                allowTaint: true
+                allowTaint: true,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
             }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
+                const imgData = canvas.toDataURL('image/png', 1.0);
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const imgWidth = 210; // A4 width in mm
                 const pageHeight = 295; // A4 height in mm
-                const imgHeight = canvas.height * imgWidth / canvas.width;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // Add first page
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                
+                // Add additional pages if content is taller than one page
                 let heightLeft = imgHeight;
                 let position = 0;
                 
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                
-                // Add new pages if content is longer than one page
-                while (heightLeft >= 0) {
+                while (heightLeft > 0) {
                     position = heightLeft - imgHeight;
                     pdf.addPage();
                     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
                 }
                 
-                pdf.save('resume.pdf');
+                pdf.save(`${fullNameInput.value || 'resume'}.pdf`);
+                
+                // Restore button state
                 exportPdfBtn.classList.remove('hidden');
+                exportPdfBtn.innerHTML = originalText;
+            }).catch(err => {
+                console.error('PDF export error:', err);
+                alert('Error generating PDF. Please try again.');
+                exportPdfBtn.classList.remove('hidden');
+                exportPdfBtn.innerHTML = originalText;
             });
         }
         
@@ -797,7 +915,8 @@
                 projects: Array.from(document.querySelectorAll('.project-item')).map(item => ({
                     name: item.querySelector('.project-name').value,
                     tech: item.querySelector('.project-tech').value,
-                    description: item.querySelector('.project-description').value
+                    description: item.querySelector('.project-description').value,
+                    url: item.querySelector('.project-url')?.value || ''
                 })),
                 
                 // Cover Letter
@@ -868,6 +987,9 @@
                     lastProj.querySelector('.project-name').value = proj.name || '';
                     lastProj.querySelector('.project-tech').value = proj.tech || '';
                     lastProj.querySelector('.project-description').value = proj.description || '';
+                    if (proj.url && lastProj.querySelector('.project-url')) {
+                        lastProj.querySelector('.project-url').value = proj.url;
+                    }
                 });
             } else {
                 addProjectField(true);
@@ -881,7 +1003,7 @@
         function addExperienceField(initial = false) {
             const id = Date.now();
             const experienceItem = document.createElement('div');
-            experienceItem.className = 'experience-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-fadeIn';
+            experienceItem.className = 'experience-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-fade-in';
             experienceItem.dataset.id = id;
             
             experienceItem.innerHTML = `
@@ -894,32 +1016,32 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div>
                         <label for="exp-title-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Job Title</label>
-                        <input type="text" id="exp-title-${id}" class="exp-title bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Software Engineer">
+                        <input type="text" id="exp-title-${id}" class="exp-title input-field" placeholder="Software Engineer">
                     </div>
                     <div>
                         <label for="exp-company-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Company</label>
-                        <input type="text" id="exp-company-${id}" class="exp-company bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Tech Company Inc.">
+                        <input type="text" id="exp-company-${id}" class="exp-company input-field" placeholder="Tech Company Inc.">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div>
                         <label for="exp-start-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Start Date</label>
-                        <input type="text" id="exp-start-${id}" class="exp-start bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="MM/YYYY">
+                        <input type="text" id="exp-start-${id}" class="exp-start input-field" placeholder="MM/YYYY">
                     </div>
                     <div>
                         <label for="exp-end-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">End Date</label>
-                        <input type="text" id="exp-end-${id}" class="exp-end bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="MM/YYYY or Present">
+                        <input type="text" id="exp-end-${id}" class="exp-end input-field" placeholder="MM/YYYY or Present">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div>
                         <label for="exp-location-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Location</label>
-                        <input type="text" id="exp-location-${id}" class="exp-location bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="City, Country">
+                        <input type="text" id="exp-location-${id}" class="exp-location input-field" placeholder="City, Country">
                     </div>
                 </div>
                 <div>
                     <label for="exp-description-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Description (bullet points, separate with new lines)</label>
-                    <textarea id="exp-description-${id}" rows="3" class="exp-description bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring"></textarea>
+                    <textarea id="exp-description-${id}" rows="3" class="exp-description input-field"></textarea>
                 </div>
             `;
             
@@ -961,7 +1083,7 @@
         function addEducationField(initial = false) {
             const id = Date.now();
             const educationItem = document.createElement('div');
-            educationItem.className = 'education-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-fadeIn';
+            educationItem.className = 'education-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-fade-in';
             educationItem.dataset.id = id;
             
             educationItem.innerHTML = `
@@ -974,31 +1096,31 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div>
                         <label for="edu-degree-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Degree</label>
-                        <input type="text" id="edu-degree-${id}" class="edu-degree bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Bachelor of Science">
+                        <input type="text" id="edu-degree-${id}" class="edu-degree input-field" placeholder="Bachelor of Science">
                     </div>
                     <div>
                         <label for="edu-field-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Field of Study</label>
-                        <input type="text" id="edu-field-${id}" class="edu-field bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="Computer Science">
+                        <input type="text" id="edu-field-${id}" class="edu-field input-field" placeholder="Computer Science">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div>
                         <label for="edu-school-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Institution</label>
-                        <input type="text" id="edu-school-${id}" class="edu-school bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="University Name">
+                        <input type="text" id="edu-school-${id}" class="edu-school input-field" placeholder="University Name">
                     </div>
                     <div>
                         <label for="edu-location-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Location</label>
-                        <input type="text" id="edu-location-${id}" class="edu-location bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="City, Country">
+                        <input type="text" id="edu-location-${id}" class="edu-location input-field" placeholder="City, Country">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="edu-start-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Start Date</label>
-                        <input type="text" id="edu-start-${id}" class="edu-start bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="MM/YYYY">
+                        <input type="text" id="edu-start-${id}" class="edu-start input-field" placeholder="MM/YYYY">
                     </div>
                     <div>
                         <label for="edu-end-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">End Date</label>
-                        <input type="text" id="edu-end-${id}" class="edu-end bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="MM/YYYY">
+                        <input type="text" id="edu-end-${id}" class="edu-end input-field" placeholder="MM/YYYY">
                     </div>
                 </div>
             `;
@@ -1064,7 +1186,7 @@
             skillsList.innerHTML = '';
             skills.forEach((skill, index) => {
                 const skillItem = document.createElement('div');
-                skillItem.className = 'flex items-center bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm animate-fadeIn';
+                skillItem.className = 'flex items-center badge animate-fade-in';
                 skillItem.innerHTML = `
                     <span>${skill}</span>
                     <button class="ml-1 text-gray-500 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400" data-index="${index}">
@@ -1081,7 +1203,7 @@
         function addProjectField(initial = false) {
             const id = Date.now();
             const projectItem = document.createElement('div');
-            projectItem.className = 'project-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-fadeIn';
+            projectItem.className = 'project-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-fade-in';
             projectItem.dataset.id = id;
             
             projectItem.innerHTML = `
@@ -1093,19 +1215,19 @@
                 </div>
                 <div class="mb-3">
                     <label for="project-name-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Project Name</label>
-                    <input type="text" id="project-name-${id}" class="project-name bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="E-commerce Platform">
+                    <input type="text" id="project-name-${id}" class="project-name input-field" placeholder="E-commerce Platform">
                 </div>
                 <div class="mb-3">
                     <label for="project-tech-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Technologies Used</label>
-                    <input type="text" id="project-tech-${id}" class="project-tech bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="React, Node.js, MongoDB">
+                    <input type="text" id="project-tech-${id}" class="project-tech input-field" placeholder="React, Node.js, MongoDB">
                 </div>
                 <div>
                     <label for="project-description-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Description</label>
-                    <textarea id="project-description-${id}" rows="3" class="project-description bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring"></textarea>
+                    <textarea id="project-description-${id}" rows="3" class="project-description input-field"></textarea>
                 </div>
                 <div class="mt-2">
                     <label for="project-url-${id}" class="block mb-1 text-sm text-gray-700 dark:text-gray-300">Project URL (optional)</label>
-                    <input type="url" id="project-url-${id}" class="project-url bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white input-ring" placeholder="https://example.com">
+                    <input type="url" id="project-url-${id}" class="project-url input-field" placeholder="https://example.com">
                 </div>
             `;
             
@@ -1147,7 +1269,7 @@
             
             // Show loading state
             aiResponse.classList.remove('hidden');
-            aiText.textContent = "Thinking...";
+            aiText.textContent = "Analyzing your request...";
             
             // Mock AI response (in a real app, you'd call an API)
             setTimeout(() => {
@@ -1172,7 +1294,8 @@
             }
             
             // Show loading state
-            coverLetterInput.value = "Generating cover letter...";
+            const originalText = generateCoverLetterBtn.innerHTML;
+            generateCoverLetterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
             
             // Mock AI-generated cover letter
             setTimeout(() => {
@@ -1191,6 +1314,7 @@ Sincerely,
 ${fullNameInput.value}`;
 
                 coverLetterInput.value = coverLetter;
+                generateCoverLetterBtn.innerHTML = originalText;
                 saveFormData();
             }, 2000);
         }
@@ -1274,7 +1398,7 @@ ${fullNameInput.value}`;
             skillsPreview.innerHTML = '';
             skills.forEach(skill => {
                 const skillItem = document.createElement('span');
-                skillItem.className = 'bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm';
+                skillItem.className = 'badge';
                 skillItem.textContent = skill;
                 skillsPreview.appendChild(skillItem);
             });
