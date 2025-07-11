@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portify – Build a sleek resume in minutes</title>
+    <meta name="description" content="Spotify-inspired resume builder with dark/light modes and PDF export">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5a5a5a;
+        }
+        
+        /* Animation for theme switching */
+        .theme-transition * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Custom color classes */
+        .custom-primary {
+            --tw-bg-opacity: 1;
+            background-color: rgb(29 185 84 / var(--tw-bg-opacity));
+        }
+        .custom-primary-text {
+            --tw-text-opacity: 1;
+            color: rgb(29 185 84 / var(--tw-text-opacity));
+        }
+        .custom-primary-border {
+            --tw-border-opacity: 1;
+            border-color: rgb(29 185 84 / var(--tw-border-opacity));
+        }
+        
+        .hover\:custom-primary:hover {
+            background-color: rgba(29, 185, 84, 0.9);
+        }
+        
+        /* Custom theme variants */
+        .theme-green {
+            --color-primary: 29 185 84;
+        }
+        .theme-blue {
+            --color-primary: 29 115 185;
+        }
+        .theme-purple {
+            --color-primary: 138 29 185;
+        }
+        .theme-red {
+            --color-primary: 185 29 61;
+        }
+        .theme-orange {
+            --color-primary: 185 115 29;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: 'rgb(var(--color-primary))',
+                            light: 'rgba(var(--color-primary), 0.1)',
+                        },
+                        dark: {
+                            900: '#121212',
+                            800: '#181818',
+                            700: '#282828',
+                            600: '#404040',
+                        },
+                        light: {
+                            900: '#ffffff',
+                            800: '#f8f9fa',
+                            700: '#e9ecef',
+                            600: '#dee2e6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="theme-transition bg-gray-100 dark:bg-dark-900 min-h-screen flex flex-col">
+    <!-- Landing Page -->
+    <div id="landing-page" class="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-gradient-to-br from-dark-800 to-dark-900 text-white">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-5xl md:text-7xl font-bold mb-4 tracking-tight">Portify</h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-8">Build a sleek resume in minutes</p>
+                <p class="text-lg text-gray-400 mb-12">Spotify-inspired UI. Built by GM73.</p>
+            </div>
+            
+            <div class="mb-16">
+                <img src="https://i.imgur.com/JQJZQJl.png" alt="Portify mockup" class="w-full max-w-2xl mx-auto rounded-lg shadow-2xl border border-gray-700">
+            </div>
+            
+            <button id="start-building" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105">
+                Start Building <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- App Container (hidden initially) -->
+    <div id="app-container" class="hidden flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="bg-dark-800 dark:bg-dark-800 text-white p-4 shadow-md sticky top-0 z-10">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-music mr-2"></i> Portify
+                    </h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Selector -->
+                    <div class="relative">
+                        <button id="theme-toggle" class="flex items-center justify-center w-10 h-10 rounded-full bg-dark-700 hover:bg-dark-600 transition-colors">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                        
+                        <div id="theme-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-dark-700 rounded-md shadow-lg z-20 py-1">
+                            <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-dark-600">Theme Options</div>
+                            <button data-theme="dark" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600 flex items-center">
+                                <i class="fas fa-moon mr-2"></i> Dark Mode
+                            </button>
+                            <button data-theme="light" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-600 flex items-center">
+                                <i class="fas fa-sun mr-2"></i> Light Mode
+                            </button>
+                            <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 border-t border-gray-200 dark:border-dark-600">Custom Colors</div>
+                            <div class="grid grid-cols-3 gap-1 px-2 py-1">
+                                <button data-theme="custom" data-color="green" class="w-8 h-8 rounded-full bg-green-500 hover:border-2 hover:border-white"></button>
+                                <button data-theme="custom" data-color="blue" class="w-8 h-8 rounded-full bg-blue-500 hover:border-2 hover:border-white"></button>
+                                <button data-theme="custom" data-color="purple" class="w-8 h-8 rounded-full bg-purple-500 hover:border-2 hover:border-white"></button>
+                                <button data-theme="custom" data-color="red" class="w-8 h-8 rounded-full bg-red-500 hover:border-2 hover:border-white"></button>
+                                <button data-theme="custom" data-color="orange" class="w-8 h-8 rounded-full bg-orange-500 hover:border-2 hover:border-white"></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Indicator -->
+                    <div class="hidden md:flex items-center bg-dark-700 dark:bg-dark-600 px-3 py-1 rounded-full text-sm">
+                        <span id="progress-text">0% Complete</span>
+                    </div>
+                    
+                    <!-- PDF Export -->
+                    <button id="export-pdf" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-full text-sm transition-colors hidden md:block">
+                        <i class="fas fa-file-pdf mr-1"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 container mx-auto p-4 md:p-6">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Form Column -->
+                <div class="w-full lg:w-1/2">
+                    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg p-6 mb-6">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white flex items-center">
+                            <i class="fas fa-user-edit mr-2"></i> Your Information
+                        </h2>
+                        
+                        <!-- Template Selector -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Resume Template</label>
+                            <select id="template-selector" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="modern">Modern</option>
+                                <option value="classic">Classic</option>
+                                <option value="minimal">Minimal</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Personal Info -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b pb-2 border-gray-200 dark:border-dark-600 flex items-center">
+                                <i class="fas fa-user-circle mr-2"></i> Personal Details
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Full Name*</label>
+                                    <div class="relative">
+                                        <input type="text" id="full-name" class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="John Doe">
+                                        <i class="fas fa-user absolute left-3 top-3 text-gray-400 dark:text-gray-500"></i>
+                                    </div>
+                                    <p class="text-xs text-red-500 mt-1 hidden" id="name-error">Please enter your name</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Job Title*</label>
+                                    <div class="relative">
+                                        <input type="text" id="job-title" class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Software Engineer">
+                                        <i class="fas fa-briefcase absolute left-3 top-3 text-gray-400 dark:text-gray-500"></i>
+                                    </div>
+                                    <p class="text-xs text-red-500 mt-1 hidden" id="title-error">Please enter your job title</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Email*</label>
+                                    <div class="relative">
+                                        <input type="email" id="email" class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="john@example.com">
+                                        <i class="fas fa-envelope absolute left-3 top-3 text-gray-400 dark:text-gray-500"></i>
+                                    </div>
+                                    <p class="text-xs text-red-500 mt-1 hidden" id="email-error">Please enter a valid email</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Phone</label>
+                                    <div class="relative">
+                                        <input type="tel" id="phone" class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="(123) 456-7890">
+                                        <i class="fas fa-phone absolute left-3 top-3 text-gray-400 dark:text-gray-500"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Address</label>
+                                    <div class="relative">
+                                        <input type="text" id="address" class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="123 Main St, City, Country">
+                                        <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400 dark:text-gray-500"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">About You*</label>
+                                    <div class="relative">
+                                        <textarea id="about" rows="3" class="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="A passionate software engineer with 5 years of experience..."></textarea>
+                                        <i class="fas fa-info-circle absolute left-3 top-3 text-gray-400 dark:text-gray-500"></i>
+                                    </div>
+                                    <p class="text-xs text-red-500 mt-1 hidden" id="about-error">Please tell us about yourself</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Experience -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b pb-2 border-gray-200 dark:border-dark-600 flex items-center">
+                                <i class="fas fa-building mr-2"></i> Work Experience
+                            </h3>
+                            
+                            <div id="experience-container">
+                                <!-- Experience items will be added here -->
+                            </div>
+                            
+                            <button id="add-experience" class="mt-4 bg-gray-200 dark:bg-dark-700 hover:bg-gray-300 dark:hover:bg-dark-600 text-gray-800 dark:text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-plus mr-1"></i> Add Experience
+                            </button>
+                        </div>
+                        
+                        <!-- Education -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b pb-2 border-gray-200 dark:border-dark-600 flex items-center">
+                                <i class="fas fa-graduation-cap mr-2"></i> Education
+                            </h3>
+                            
+                            <div id="education-container">
+                                <!-- Education items will be added here -->
+                            </div>
+                            
+                            <button id="add-education" class="mt-4 bg-gray-200 dark:bg-dark-700 hover:bg-gray-300 dark:hover:bg-dark-600 text-gray-800 dark:text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-plus mr-1"></i> Add Education
+                            </button>
+                        </div>
+                        
+                        <!-- Skills -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b pb-2 border-gray-200 dark:border-dark-600 flex items-center">
+                                <i class="fas fa-code mr-2"></i> Skills
+                            </h3>
+                            
+                            <div id="skills-container">
+                                <!-- Skills will be added here -->
+                            </div>
+                            
+                            <div class="flex mt-4">
+                                <input type="text" id="new-skill" class="flex-1 px-4 py-2 rounded-l-lg border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Add a skill">
+                                <button id="add-skill" class="bg-gray-200 dark:bg-dark-700 hover:bg-gray-300 dark:hover:bg-dark-600 text-gray-800 dark:text-white py-2 px-4 rounded-r-lg transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Projects -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b pb-2 border-gray-200 dark:border-dark-600 flex items-center">
+                                <i class="fas fa-project-diagram mr-2"></i> Projects
+                            </h3>
+                            
+                            <div id="projects-container">
+                                <!-- Project items will be added here -->
+                            </div>
+                            
+                            <button id="add-project" class="mt-4 bg-gray-200 dark:bg-dark-700 hover:bg-gray-300 dark:hover:bg-dark-600 text-gray-800 dark:text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-plus mr-1"></i> Add Project
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Export Button -->
+                    <button id="export-pdf-mobile" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg text-center transition-colors md:hidden mb-6">
+                        <i class="fas fa-file-pdf mr-2"></i> Export PDF
+                    </button>
+                </div>
+                
+                <!-- Preview Column -->
+                <div class="w-full lg:w-1/2">
+                    <div class="sticky top-20">
+                        <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg overflow-hidden mb-6">
+                            <div class="p-6 border-b border-gray-200 dark:border-dark-600">
+                                <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center justify-between">
+                                    <span><i class="fas fa-eye mr-2"></i> Resume Preview</span>
+                                    <span class="text-sm font-normal bg-gray-200 dark:bg-dark-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full">
+                                        <span id="template-name">Modern</span> Template
+                                    </span>
+                                </h2>
+                            </div>
+                            
+                            <div id="resume-preview" class="p-6">
+                                <!-- Resume preview will be rendered here -->
+                                <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-file-alt text-4xl mb-4"></i>
+                                    <p>Your resume preview will appear here</p>
+                                    <p class="text-sm mt-2">Start filling out the form to see changes</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tips Section -->
+                        <div class="bg-white dark:bg-dark-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300 flex items-center">
+                                <i class="fas fa-lightbulb mr-2"></i> Resume Tips
+                            </h3>
+                            <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    <span>Keep your resume concise - ideally 1 page for less than 10 years experience</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    <span>Use action verbs like "developed", "led", "implemented"</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    <span>Quantify achievements when possible (e.g. "Increased performance by 30%")</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    <span>Tailor your resume for each job application</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white dark:bg-dark-800 text-gray-600 dark:text-gray-400 py-6 text-center border-t border-gray-200 dark:border-dark-700">
+            <div class="container mx-auto px-4">
+                <p>Made with ❤️ by GM73 Technologies, 2025 ©️</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Experience Item Template (hidden) -->
+    <template id="experience-template">
+        <div class="experience-item bg-gray-50 dark:bg-dark-700 p-4 rounded-lg mb-4 border border-gray-200 dark:border-dark-600">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="relative mb-2">
+                        <input type="text" class="experience-company font-medium w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Company Name">
+                    </div>
+                    <div class="relative mb-2">
+                        <input type="text" class="experience-position w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Position">
+                    </div>
+                </div>
+                <button class="delete-experience text-red-500 hover:text-red-700 p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                <div class="relative">
+                    <input type="text" class="experience-start w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Start Date (e.g. Jan 2020)">
+                </div>
+                <div class="relative">
+                    <input type="text" class="experience-end w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="End Date (e.g. Present)">
+                </div>
+            </div>
+            
+            <div class="relative mt-2">
+                <textarea class="experience-description w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" rows="3" placeholder="Description of your responsibilities and achievements"></textarea>
+            </div>
+        </div>
+    </template>
+
+    <!-- Education Item Template (hidden) -->
+    <template id="education-template">
+        <div class="education-item bg-gray-50 dark:bg-dark-700 p-4 rounded-lg mb-4 border border-gray-200 dark:border-dark-600">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="relative mb-2">
+                        <input type="text" class="education-school font-medium w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="School/University">
+                    </div>
+                    <div class="relative mb-2">
+                        <input type="text" class="education-degree w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Degree (e.g. BSc Computer Science)">
+                    </div>
+                </div>
+                <button class="delete-education text-red-500 hover:text-red-700 p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                <div class="relative">
+                    <input type="text" class="education-start w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Start Date (e.g. Sep 2016)">
+                </div>
+                <div class="relative">
+                    <input type="text" class="education-end w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="End Date (e.g. May 2020)">
+                </div>
+            </div>
+            
+            <div class="relative mt-2">
+                <textarea class="education-description w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" rows="2" placeholder="Notable achievements or coursework"></textarea>
+            </div>
+        </div>
+    </template>
+
+    <!-- Project Item Template (hidden) -->
+    <template id="project-template">
+        <div class="project-item bg-gray-50 dark:bg-dark-700 p-4 rounded-lg mb-4 border border-gray-200 dark:border-dark-600">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="relative mb-2">
+                        <input type="text" class="project-name font-medium w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Project Name">
+                    </div>
+                    <div class="relative mb-2">
+                        <input type="text" class="project-tech w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Technologies Used">
+                    </div>
+                </div>
+                <button class="delete-project text-red-500 hover:text-red-700 p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="relative mt-2">
+                <textarea class="project-description w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" rows="3" placeholder="Project description and your contributions"></textarea>
+            </div>
+            
+            <div class="relative mt-2">
+                <input type="text" class="project-link w-full px-3 py-1 rounded border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-800 dark:text-white" placeholder="Project URL (optional)">
+            </div>
+        </div>
+    </template>
+
+    <!-- Skill Item Template (hidden) -->
+    <template id="skill-template">
+        <div class="skill-item inline-flex items-center bg-gray-200 dark:bg-dark-700 text-gray-800 dark:text-white px-3 py-1 rounded-full mr-2 mb-2">
+            <span class="skill-text"></span>
+            <button class="delete-skill ml-2 text-gray-500 dark:text-gray-400 hover:text-red-500">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    </template>
+
+    <!-- Modern Resume Template (hidden) -->
+    <template id="modern-template">
+        <div class="modern-resume p-6 bg-white dark:bg-dark-700 text-gray-800 dark:text-gray-200">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-primary mb-1" id="preview-name">John Doe</h1>
+                <h2 class="text-xl text-gray-600 dark:text-gray-400 mb-4" id="preview-title">Software Engineer</h2>
+                
+                <div class="flex flex-wrap gap-4 text-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope mr-2 text-primary"></i>
+                        <span id="preview-email">john@example.com</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-phone mr-2 text-primary"></i>
+                        <span id="preview-phone">(123) 456-7890</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                        <span id="preview-address">San Francisco, CA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold border-b border-gray-300 dark:border-dark-600 pb-1 mb-3 flex items-center">
+                    <i class="fas fa-user mr-2 text-primary"></i> About
+                </h3>
+                <p class="text-gray-700 dark:text-gray-300" id="preview-about">Passionate software engineer with 5 years of experience building web applications. Specialized in JavaScript frameworks and cloud architecture.</p>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold border-b border-gray-300 dark:border-dark-600 pb-1 mb-3 flex items-center">
+                    <i class="fas fa-briefcase mr-2 text-primary"></i> Experience
+                </h3>
+                <div id="preview-experience">
+                    <!-- Experience items will be added here -->
+                    <div class="mb-4">
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">Senior Developer</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">2020 - Present</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400 mb-1">Tech Company Inc.</h5>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">Led a team of 5 developers to build a new customer portal that increased user engagement by 40%.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold border-b border-gray-300 dark:border-dark-600 pb-1 mb-3 flex items-center">
+                    <i class="fas fa-graduation-cap mr-2 text-primary"></i> Education
+                </h3>
+                <div id="preview-education">
+                    <!-- Education items will be added here -->
+                    <div class="mb-4">
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">BSc Computer Science</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">2016 - 2020</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400">University of Technology</h5>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold border-b border-gray-300 dark:border-dark-600 pb-1 mb-3 flex items-center">
+                    <i class="fas fa-code mr-2 text-primary"></i> Skills
+                </h3>
+                <div id="preview-skills" class="flex flex-wrap gap-2">
+                    <!-- Skills will be added here -->
+                    <span class="bg-primary-light text-primary px-3 py-1 rounded-full text-sm">JavaScript</span>
+                    <span class="bg-primary-light text-primary px-3 py-1 rounded-full text-sm">React</span>
+                    <span class="bg-primary-light text-primary px-3 py-1 rounded-full text-sm">Node.js</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold border-b border-gray-300 dark:border-dark-600 pb-1 mb-3 flex items-center">
+                    <i class="fas fa-project-diagram mr-2 text-primary"></i> Projects
+                </h3>
+                <div id="preview-projects">
+                    <!-- Projects will be added here -->
+                    <div class="mb-4">
+                        <h4 class="font-medium">E-commerce Platform</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">React, Node.js, MongoDB</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">Built a full-stack e-commerce platform with payment integration and admin dashboard.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Classic Resume Template (hidden) -->
+    <template id="classic-template">
+        <div class="classic-resume p-6 bg-white dark:bg-dark-700 text-gray-800 dark:text-gray-200">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold mb-1" id="preview-name-classic">John Doe</h1>
+                <h2 class="text-xl text-gray-600 dark:text-gray-400 mb-2" id="preview-title-classic">Software Engineer</h2>
+                
+                <div class="flex justify-center flex-wrap gap-4 text-sm mb-4">
+                    <span id="preview-email-classic">john@example.com</span>
+                    <span id="preview-phone-classic">(123) 456-7890</span>
+                    <span id="preview-address-classic">San Francisco, CA</span>
+                </div>
+                
+                <div class="border-t border-b border-gray-300 dark:border-dark-600 py-2 mb-4">
+                    <p class="text-gray-700 dark:text-gray-300" id="preview-about-classic">Passionate software engineer with 5 years of experience building web applications. Specialized in JavaScript frameworks and cloud architecture.</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-semibold border-b border-primary pb-1 mb-3">Professional Experience</h3>
+                    <div id="preview-experience-classic">
+                        <!-- Experience items will be added here -->
+                        <div class="mb-4">
+                            <div class="flex justify-between">
+                                <h4 class="font-medium">Senior Developer</h4>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">2020 - Present</span>
+                            </div>
+                            <h5 class="text-sm text-gray-600 dark:text-gray-400 mb-1">Tech Company Inc.</h5>
+                            <ul class="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300 mt-1 space-y-1">
+                                <li>Led a team of 5 developers to build a new customer portal</li>
+                                <li>Increased user engagement by 40%</li>
+                                <li>Implemented CI/CD pipeline reducing deployment time by 30%</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold border-b border-primary pb-1 mb-3 mt-6">Education</h3>
+                    <div id="preview-education-classic">
+                        <!-- Education items will be added here -->
+                        <div class="mb-4">
+                            <div class="flex justify-between">
+                                <h4 class="font-medium">BSc Computer Science</h4>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">2016 - 2020</span>
+                            </div>
+                            <h5 class="text-sm text-gray-600 dark:text-gray-400">University of Technology</h5>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">Graduated with Honors. Specialized in Web Technologies.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold border-b border-primary pb-1 mb-3">Skills</h3>
+                    <div id="preview-skills-classic" class="space-y-2">
+                        <!-- Skills will be added here -->
+                        <div>
+                            <h4 class="font-medium text-sm">Programming</h4>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">JavaScript, Python, Java</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-sm">Frameworks</h4>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">React, Node.js, Express</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold border-b border-primary pb-1 mb-3 mt-6">Projects</h3>
+                    <div id="preview-projects-classic">
+                        <!-- Projects will be added here -->
+                        <div class="mb-4">
+                            <h4 class="font-medium text-sm">E-commerce Platform</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">React, Node.js, MongoDB</p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">Built a full-stack e-commerce platform with payment integration.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Minimal Resume Template (hidden) -->
+    <template id="minimal-template">
+        <div class="minimal-resume p-6 bg-white dark:bg-dark-700 text-gray-800 dark:text-gray-200">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold mb-1" id="preview-name-minimal">John Doe</h1>
+                <h2 class="text-lg text-gray-600 dark:text-gray-400 mb-4" id="preview-title-minimal">Software Engineer</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+                    <div class="flex items-center">
+                        <span id="preview-email-minimal">john@example.com</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span id="preview-phone-minimal">(123) 456-7890</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span id="preview-address-minimal">San Francisco, CA</span>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-300 dark:border-dark-600 pt-4">
+                    <p class="text-gray-700 dark:text-gray-300" id="preview-about-minimal">Passionate software engineer with 5 years of experience building web applications. Specialized in JavaScript frameworks and cloud architecture.</p>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-medium mb-3 border-b border-gray-300 dark:border-dark-600 pb-1">Experience</h3>
+                    <div id="preview-experience-minimal" class="space-y-4">
+                        <!-- Experience items will be added here -->
+                        <div>
+                            <div class="flex justify-between">
+                                <h4 class="font-medium">Senior Developer</h4>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">2020 - Present</span>
+                            </div>
+                            <h5 class="text-sm text-gray-600 dark:text-gray-400 mb-1">Tech Company Inc.</h5>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">Led a team of 5 developers to build a new customer portal that increased user engagement by 40%.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium mb-3 border-b border-gray-300 dark:border-dark-600 pb-1">Education</h3>
+                    <div id="preview-education-minimal" class="space-y-4">
+                        <!-- Education items will be added here -->
+                        <div>
+                            <div class="flex justify-between">
+                                <h4 class="font-medium">BSc Computer Science</h4>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">2016 - 2020</span>
+                            </div>
+                            <h5 class="text-sm text-gray-600 dark:text-gray-400">University of Technology</h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium mb-3 border-b border-gray-300 dark:border-dark-600 pb-1">Skills</h3>
+                    <div id="preview-skills-minimal" class="flex flex-wrap gap-2">
+                        <!-- Skills will be added here -->
+                        <span class="border border-gray-300 dark:border-dark-600 px-2 py-1 rounded text-sm">JavaScript</span>
+                        <span class="border border-gray-300 dark:border-dark-600 px-2 py-1 rounded text-sm">React</span>
+                        <span class="border border-gray-300 dark:border-dark-600 px-2 py-1 rounded text-sm">Node.js</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const landingPage = document.getElementById('landing-page');
+            const appContainer = document.getElementById('app-container');
+            const startBuildingBtn = document.getElementById('start-building');
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeDropdown = document.getElementById('theme-dropdown');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportPdfMobileBtn = document.getElementById('export-pdf-mobile');
+            const templateSelector = document.getElementById('template-selector');
+            const resumePreview = document.getElementById('resume-preview');
+            const progressText = document.getElementById('progress-text');
+            
+            // Form sections
+            const fullNameInput = document.getElementById('full-name');
+            const jobTitleInput = document.getElementById('job-title');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const addressInput = document.getElementById('address');
+            const aboutInput = document.getElementById('about');
+            
+            // Containers
+            const experienceContainer = document.getElementById('experience-container');
+            const educationContainer = document.getElementById('education-container');
+            const skillsContainer = document.getElementById('skills-container');
+            const projectsContainer = document.getElementById('projects-container');
+            
+            // Buttons
+            const addExperienceBtn = document.getElementById('add-experience');
+            const addEducationBtn = document.getElementById('add-education');
+            const addSkillBtn = document.getElementById('add-skill');
+            const newSkillInput = document.getElementById('new-skill');
+            const addProjectBtn = document.getElementById('add-project');
+            
+            // Templates
+            const experienceTemplate = document.getElementById('experience-template');
+            const educationTemplate = document.getElementById('education-template');
+            const projectTemplate = document.getElementById('project-template');
+            const skillTemplate = document.getElementById('skill-template');
+            
+            const modernTemplate = document.getElementById('modern-template');
+            const classicTemplate = document.getElementById('classic-template');
+            const minimalTemplate = document.getElementById('minimal-template');
+            
+            // Show app when start building is clicked
+            startBuildingBtn.addEventListener('click', function() {
+                landingPage.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                
+                // Add initial items
+                addExperienceItem();
+                addEducationItem();
+                addSkill('JavaScript');
+                addSkill('React');
+                addSkill('Node.js');
+                addProjectItem();
+                
+                // Update preview
+                updateResumePreview();
+            });
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', function() {
+                themeDropdown.classList.toggle('hidden');
+            });
+            
+            // Close theme dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!themeToggle.contains(e.target) {
+                    themeDropdown.classList.add('hidden');
+                }
+            });
+            
+            // Theme selection
+            document.querySelectorAll('[data-theme]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    const color = this.getAttribute('data-color');
+                    
+                    // Remove all theme classes
+                    document.documentElement.classList.remove('dark', 'light', 'theme-green', 'theme-blue', 'theme-purple', 'theme-red', 'theme-orange');
+                    
+                    if (theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                        document.documentElement.style.setProperty('--color-primary', '29 185 84');
+                    } else if (theme === 'light') {
+                        document.documentElement.classList.add('light');
+                        document.documentElement.style.setProperty('--color-primary', '29 185 84');
+                    } else if (theme === 'custom') {
+                        document.documentElement.classList.add('dark'); // Default to dark for custom
+                        if (color === 'green') {
+                            document.documentElement.classList.add('theme-green');
+                            document.documentElement.style.setProperty('--color-primary', '29 185 84');
+                        } else if (color === 'blue') {
+                            document.documentElement.classList.add('theme-blue');
+                            document.documentElement.style.setProperty('--color-primary', '29 115 185');
+                        } else if (color === 'purple') {
+                            document.documentElement.classList.add('theme-purple');
+                            document.documentElement.style.setProperty('--color-primary', '138 29 185');
+                        } else if (color === 'red') {
+                            document.documentElement.classList.add('theme-red');
+                            document.documentElement.style.setProperty('--color-primary', '185 29 61');
+                        } else if (color === 'orange') {
+                            document.documentElement.classList.add('theme-orange');
+                            document.documentElement.style.setProperty('--color-primary', '185 115 29');
+                        }
+                    }
+                    
+                    themeDropdown.classList.add('hidden');
+                    updateResumePreview();
+                });
+            });
+            
+            // Add experience item
+            addExperienceBtn.addEventListener('click', addExperienceItem);
+            
+            function addExperienceItem() {
+                const experienceItem = experienceTemplate.content.cloneNode(true);
+                experienceContainer.appendChild(experienceItem);
+                
+                // Add delete functionality
+                const deleteBtn = experienceContainer.lastElementChild.querySelector('.delete-experience');
+                deleteBtn.addEventListener('click', function() {
+                    experienceContainer.removeChild(this.closest('.experience-item'));
+                    updateResumePreview();
+                });
+                
+                // Add input listeners
+                const inputs = experienceContainer.lastElementChild.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('input', updateResumePreview);
+                });
+                
+                updateResumePreview();
+            }
+            
+            // Add education item
+            addEducationBtn.addEventListener('click', addEducationItem);
+            
+            function addEducationItem() {
+                const educationItem = educationTemplate.content.cloneNode(true);
+                educationContainer.appendChild(educationItem);
+                
+                // Add delete functionality
+                const deleteBtn = educationContainer.lastElementChild.querySelector('.delete-education');
+                deleteBtn.addEventListener('click', function() {
+                    educationContainer.removeChild(this.closest('.education-item'));
+                    updateResumePreview();
+                });
+                
+                // Add input listeners
+                const inputs = educationContainer.lastElementChild.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('input', updateResumePreview);
+                });
+                
+                updateResumePreview();
+            }
+            
+            // Add skill
+            addSkillBtn.addEventListener('click', function() {
+                const skill = newSkillInput.value.trim();
+                if (skill) {
+                    addSkill(skill);
+                    newSkillInput.value = '';
+                    updateResumePreview();
+                }
+            });
+            
+            newSkillInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const skill = newSkillInput.value.trim();
+                    if (skill) {
+                        addSkill(skill);
+                        newSkillInput.value = '';
+                        updateResumePreview();
+                    }
+                }
+            });
+            
+            function addSkill(skill) {
+                const skillItem = skillTemplate.content.cloneNode(true);
+                const skillText = skillItem.querySelector('.skill-text');
+                skillText.textContent = skill;
+                
+                skillsContainer.appendChild(skillItem);
+                
+                // Add delete functionality
+                const deleteBtn = skillsContainer.lastElementChild.querySelector('.delete-skill');
+                deleteBtn.addEventListener('click', function() {
+                    skillsContainer.removeChild(this.closest('.skill-item'));
+                    updateResumePreview();
+                });
+            }
+            
+            // Add project item
+            addProjectBtn.addEventListener('click', addProjectItem);
+            
+            function addProjectItem() {
+                const projectItem = projectTemplate.content.cloneNode(true);
+                projectsContainer.appendChild(projectItem);
+                
+                // Add delete functionality
+                const deleteBtn = projectsContainer.lastElementChild.querySelector('.delete-project');
+                deleteBtn.addEventListener('click', function() {
+                    projectsContainer.removeChild(this.closest('.project-item'));
+                    updateResumePreview();
+                });
+                
+                // Add input listeners
+                const inputs = projectsContainer.lastElementChild.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('input', updateResumePreview);
+                });
+                
+                updateResumePreview();
+            }
+            
+            // Form input listeners for personal info
+            [fullNameInput, jobTitleInput, emailInput, phoneInput, addressInput, aboutInput].forEach(input => {
+                input.addEventListener('input', updateResumePreview);
+            });
+            
+            // Template selector
+            templateSelector.addEventListener('change', updateResumePreview);
+            
+            // Update resume preview
+            function updateResumePreview() {
+                const template = templateSelector.value;
+                document.getElementById('template-name').textContent = template.charAt(0).toUpperCase() + template.slice(1);
+                
+                // Clear preview
+                resumePreview.innerHTML = '';
+                
+                // Clone the selected template
+                let previewTemplate;
+                if (template === 'modern') {
+                    previewTemplate = modernTemplate.content.cloneNode(true);
+                } else if (template === 'classic') {
+                    previewTemplate = classicTemplate.content.cloneNode(true);
+                } else if (template === 'minimal') {
+                    previewTemplate = minimalTemplate.content.cloneNode(true);
+                }
+                
+                // Update personal info
+                if (template === 'modern') {
+                    updateModernPreview(previewTemplate);
+                } else if (template === 'classic') {
+                    updateClassicPreview(previewTemplate);
+                } else if (template === 'minimal') {
+                    updateMinimalPreview(previewTemplate);
+                }
+                
+                // Append to preview
+                resumePreview.appendChild(previewTemplate);
+                
+                // Update progress
+                updateProgress();
+            }
+            
+            function updateModernPreview(preview) {
+                // Personal info
+                preview.getElementById('preview-name').textContent = fullNameInput.value || 'John Doe';
+                preview.getElementById('preview-title').textContent = jobTitleInput.value || 'Software Engineer';
+                preview.getElementById('preview-email').textContent = emailInput.value || 'john@example.com';
+                preview.getElementById('preview-phone').textContent = phoneInput.value || '(123) 456-7890';
+                preview.getElementById('preview-address').textContent = addressInput.value || 'San Francisco, CA';
+                preview.getElementById('preview-about').textContent = aboutInput.value || 'Passionate software engineer with 5 years of experience building web applications. Specialized in JavaScript frameworks and cloud architecture.';
+                
+                // Experience
+                const experiencePreview = preview.getElementById('preview-experience');
+                experiencePreview.innerHTML = '';
+                
+                document.querySelectorAll('.experience-item').forEach(item => {
+                    const company = item.querySelector('.experience-company').value || 'Company Name';
+                    const position = item.querySelector('.experience-position').value || 'Position';
+                    const start = item.querySelector('.experience-start').value || 'Start Date';
+                    const end = item.querySelector('.experience-end').value || 'End Date';
+                    const description = item.querySelector('.experience-description').value || 'Description of your responsibilities and achievements';
+                    
+                    const experienceDiv = document.createElement('div');
+                    experienceDiv.className = 'mb-4';
+                    experienceDiv.innerHTML = `
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">${position}</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${start} - ${end}</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400 mb-1">${company}</h5>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">${description}</p>
+                    `;
+                    
+                    experiencePreview.appendChild(experienceDiv);
+                });
+                
+                // Education
+                const educationPreview = preview.getElementById('preview-education');
+                educationPreview.innerHTML = '';
+                
+                document.querySelectorAll('.education-item').forEach(item => {
+                    const school = item.querySelector('.education-school').value || 'School/University';
+                    const degree = item.querySelector('.education-degree').value || 'Degree';
+                    const start = item.querySelector('.education-start').value || 'Start Date';
+                    const end = item.querySelector('.education-end').value || 'End Date';
+                    const description = item.querySelector('.education-description').value || '';
+                    
+                    const educationDiv = document.createElement('div');
+                    educationDiv.className = 'mb-4';
+                    educationDiv.innerHTML = `
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">${degree}</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${start} - ${end}</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400">${school}</h5>
+                        ${description ? `<p class="text-sm text-gray-700 dark:text-gray-300 mt-1">${description}</p>` : ''}
+                    `;
+                    
+                    educationPreview.appendChild(educationDiv);
+                });
+                
+                // Skills
+                const skillsPreview = preview.getElementById('preview-skills');
+                skillsPreview.innerHTML = '';
+                
+                document.querySelectorAll('.skill-item').forEach(item => {
+                    const skill = item.querySelector('.skill-text').textContent;
+                    
+                    const skillSpan = document.createElement('span');
+                    skillSpan.className = 'bg-primary-light text-primary px-3 py-1 rounded-full text-sm';
+                    skillSpan.textContent = skill;
+                    
+                    skillsPreview.appendChild(skillSpan);
+                });
+                
+                // Projects
+                const projectsPreview = preview.getElementById('preview-projects');
+                projectsPreview.innerHTML = '';
+                
+                document.querySelectorAll('.project-item').forEach(item => {
+                    const name = item.querySelector('.project-name').value || 'Project Name';
+                    const tech = item.querySelector('.project-tech').value || 'Technologies Used';
+                    const description = item.querySelector('.project-description').value || 'Project description and your contributions';
+                    const link = item.querySelector('.project-link').value || '';
+                    
+                    const projectDiv = document.createElement('div');
+                    projectDiv.className = 'mb-4';
+                    projectDiv.innerHTML = `
+                        <h4 class="font-medium">${name}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">${tech}</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">${description}</p>
+                        ${link ? `<a href="${link}" target="_blank" class="text-sm text-primary hover:underline mt-1 inline-block">View Project</a>` : ''}
+                    `;
+                    
+                    projectsPreview.appendChild(projectDiv);
+                });
+            }
+            
+            function updateClassicPreview(preview) {
+                // Personal info
+                preview.getElementById('preview-name-classic').textContent = fullNameInput.value || 'John Doe';
+                preview.getElementById('preview-title-classic').textContent = jobTitleInput.value || 'Software Engineer';
+                preview.getElementById('preview-email-classic').textContent = emailInput.value || 'john@example.com';
+                preview.getElementById('preview-phone-classic').textContent = phoneInput.value || '(123) 456-7890';
+                preview.getElementById('preview-address-classic').textContent = addressInput.value || 'San Francisco, CA';
+                preview.getElementById('preview-about-classic').textContent = aboutInput.value || 'Passionate software engineer with 5 years of experience building web applications. Specialized in JavaScript frameworks and cloud architecture.';
+                
+                // Experience
+                const experiencePreview = preview.getElementById('preview-experience-classic');
+                experiencePreview.innerHTML = '';
+                
+                document.querySelectorAll('.experience-item').forEach(item => {
+                    const company = item.querySelector('.experience-company').value || 'Company Name';
+                    const position = item.querySelector('.experience-position').value || 'Position';
+                    const start = item.querySelector('.experience-start').value || 'Start Date';
+                    const end = item.querySelector('.experience-end').value || 'End Date';
+                    const description = item.querySelector('.experience-description').value || 'Description of your responsibilities and achievements';
+                    
+                    const bullets = description.split('\n').filter(line => line.trim());
+                    
+                    const experienceDiv = document.createElement('div');
+                    experienceDiv.className = 'mb-4';
+                    experienceDiv.innerHTML = `
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">${position}</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${start} - ${end}</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400 mb-1">${company}</h5>
+                        <ul class="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300 mt-1 space-y-1">
+                            ${bullets.map(bullet => `<li>${bullet}</li>`).join('')}
+                        </ul>
+                    `;
+                    
+                    experiencePreview.appendChild(experienceDiv);
+                });
+                
+                // Education
+                const educationPreview = preview.getElementById('preview-education-classic');
+                educationPreview.innerHTML = '';
+                
+                document.querySelectorAll('.education-item').forEach(item => {
+                    const school = item.querySelector('.education-school').value || 'School/University';
+                    const degree = item.querySelector('.education-degree').value || 'Degree';
+                    const start = item.querySelector('.education-start').value || 'Start Date';
+                    const end = item.querySelector('.education-end').value || 'End Date';
+                    const description = item.querySelector('.education-description').value || '';
+                    
+                    const educationDiv = document.createElement('div');
+                    educationDiv.className = 'mb-4';
+                    educationDiv.innerHTML = `
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">${degree}</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${start} - ${end}</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400">${school}</h5>
+                        ${description ? `<p class="text-sm text-gray-700 dark:text-gray-300 mt-1">${description}</p>` : ''}
+                    `;
+                    
+                    educationPreview.appendChild(educationDiv);
+                });
+                
+                // Skills
+                const skillsPreview = preview.getElementById('preview-skills-classic');
+                skillsPreview.innerHTML = '';
+                
+                const skillsByCategory = {};
+                
+                document.querySelectorAll('.skill-item').forEach(item => {
+                    const skill = item.querySelector('.skill-text').textContent;
+                    // For classic template, we'll categorize skills by their first letter
+                    const category = skill.charAt(0).toUpperCase();
+                    
+                    if (!skillsByCategory[category]) {
+                        skillsByCategory[category] = [];
+                    }
+                    skillsByCategory[category].push(skill);
+                });
+                
+                for (const [category, skills] of Object.entries(skillsByCategory)) {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'mb-3';
+                    categoryDiv.innerHTML = `
+                        <h4 class="font-medium text-sm">${category}</h4>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">${skills.join(', ')}</p>
+                    `;
+                    skillsPreview.appendChild(categoryDiv);
+                }
+                
+                // Projects
+                const projectsPreview = preview.getElementById('preview-projects-classic');
+                projectsPreview.innerHTML = '';
+                
+                document.querySelectorAll('.project-item').forEach(item => {
+                    const name = item.querySelector('.project-name').value || 'Project Name';
+                    const tech = item.querySelector('.project-tech').value || 'Technologies Used';
+                    const description = item.querySelector('.project-description').value || 'Project description and your contributions';
+                    const link = item.querySelector('.project-link').value || '';
+                    
+                    const projectDiv = document.createElement('div');
+                    projectDiv.className = 'mb-4';
+                    projectDiv.innerHTML = `
+                        <h4 class="font-medium text-sm">${name}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${tech}</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">${description}</p>
+                        ${link ? `<a href="${link}" target="_blank" class="text-sm text-primary hover:underline mt-1 inline-block">View Project</a>` : ''}
+                    `;
+                    
+                    projectsPreview.appendChild(projectDiv);
+                });
+            }
+            
+            function updateMinimalPreview(preview) {
+                // Personal info
+                preview.getElementById('preview-name-minimal').textContent = fullNameInput.value || 'John Doe';
+                preview.getElementById('preview-title-minimal').textContent = jobTitleInput.value || 'Software Engineer';
+                preview.getElementById('preview-email-minimal').textContent = emailInput.value || 'john@example.com';
+                preview.getElementById('preview-phone-minimal').textContent = phoneInput.value || '(123) 456-7890';
+                preview.getElementById('preview-address-minimal').textContent = addressInput.value || 'San Francisco, CA';
+                preview.getElementById('preview-about-minimal').textContent = aboutInput.value || 'Passionate software engineer with 5 years of experience building web applications. Specialized in JavaScript frameworks and cloud architecture.';
+                
+                // Experience
+                const experiencePreview = preview.getElementById('preview-experience-minimal');
+                experiencePreview.innerHTML = '';
+                
+                document.querySelectorAll('.experience-item').forEach(item => {
+                    const company = item.querySelector('.experience-company').value || 'Company Name';
+                    const position = item.querySelector('.experience-position').value || 'Position';
+                    const start = item.querySelector('.experience-start').value || 'Start Date';
+                    const end = item.querySelector('.experience-end').value || 'End Date';
+                    const description = item.querySelector('.experience-description').value || 'Description of your responsibilities and achievements';
+                    
+                    const experienceDiv = document.createElement('div');
+                    experienceDiv.className = 'mb-4';
+                    experienceDiv.innerHTML = `
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">${position}</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${start} - ${end}</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400 mb-1">${company}</h5>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">${description}</p>
+                    `;
+                    
+                    experiencePreview.appendChild(experienceDiv);
+                });
+                
+                // Education
+                const educationPreview = preview.getElementById('preview-education-minimal');
+                educationPreview.innerHTML = '';
+                
+                document.querySelectorAll('.education-item').forEach(item => {
+                    const school = item.querySelector('.education-school').value || 'School/University';
+                    const degree = item.querySelector('.education-degree').value || 'Degree';
+                    const start = item.querySelector('.education-start').value || 'Start Date';
+                    const end = item.querySelector('.education-end').value || 'End Date';
+                    const description = item.querySelector('.education-description').value || '';
+                    
+                    const educationDiv = document.createElement('div');
+                    educationDiv.className = 'mb-4';
+                    educationDiv.innerHTML = `
+                        <div class="flex justify-between">
+                            <h4 class="font-medium">${degree}</h4>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${start} - ${end}</span>
+                        </div>
+                        <h5 class="text-sm text-gray-600 dark:text-gray-400">${school}</h5>
+                        ${description ? `<p class="text-sm text-gray-700 dark:text-gray-300 mt-1">${description}</p>` : ''}
+                    `;
+                    
+                    educationPreview.appendChild(educationDiv);
+                });
+                
+                // Skills
+                const skillsPreview = preview.getElementById('preview-skills-minimal');
+                skillsPreview.innerHTML = '';
+                
+                document.querySelectorAll('.skill-item').forEach(item => {
+                    const skill = item.querySelector('.skill-text').textContent;
+                    
+                    const skillSpan = document.createElement('span');
+                    skillSpan.className = 'border border-gray-300 dark:border-dark-600 px-2 py-1 rounded text-sm';
+                    skillSpan.textContent = skill;
+                    
+                    skillsPreview.appendChild(skillSpan);
+                });
+            }
+            
+            // Update progress tracker
+            function updateProgress() {
+                const requiredFields = [
+                    fullNameInput,
+                    jobTitleInput,
+                    emailInput,
+                    aboutInput
+                ];
+                
+                const experienceItems = document.querySelectorAll('.experience-item');
+                const educationItems = document.querySelectorAll('.education-item');
+                const skillItems = document.querySelectorAll('.skill-item');
+                
+                let filledCount = 0;
+                
+                // Check required fields
+                requiredFields.forEach(field => {
+                    if (field.value.trim()) filledCount++;
+                });
+                
+                // Check for at least one experience
+                if (experienceItems.length > 0) {
+                    const firstExp = experienceItems[0];
+                    if (
+                        firstExp.querySelector('.experience-company').value.trim() &&
+                        firstExp.querySelector('.experience-position').value.trim()
+                    ) {
+                        filledCount++;
+                    }
+                }
+                
+                // Check for at least one education
+                if (educationItems.length > 0) {
+                    const firstEdu = educationItems[0];
+                    if (
+                        firstEdu.querySelector('.education-school').value.trim() &&
+                        firstEdu.querySelector('.education-degree').value.trim()
+                    ) {
+                        filledCount++;
+                    }
+                }
+                
+                // Check for at least one skill
+                if (skillItems.length > 0) {
+                    filledCount++;
+                }
+                
+                const totalFields = 7; // 4 personal + 1 exp + 1 edu + 1 skill
+                const percentage = Math.round((filledCount / totalFields) * 100);
+                
+                progressText.textContent = `${percentage}% Complete`;
+                
+                // Validate required fields
+                validateField(fullNameInput, document.getElementById('name-error'));
+                validateField(jobTitleInput, document.getElementById('title-error'));
+                validateField(emailInput, document.getElementById('email-error'));
+                validateField(aboutInput, document.getElementById('about-error'));
+            }
+            
+            function validateField(field, errorElement) {
+                if (!field.value.trim() && field.id !== 'phone') {
+                    errorElement.classList.remove('hidden');
+                    field.classList.add('border-red-500');
+                    field.classList.remove('border-gray-300', 'dark:border-dark-600');
+                } else {
+                    errorElement.classList.add('hidden');
+                    field.classList.remove('border-red-500');
+                    field.classList.add('border-gray-300', 'dark:border-dark-600');
+                }
+            }
+            
+            // PDF Export
+            exportPdfBtn.addEventListener('click', exportToPdf);
+            exportPdfMobileBtn.addEventListener('click', exportToPdf);
+            
+            function exportToPdf() {
+                const element = document.getElementById('resume-preview');
+                const opt = {
+                    margin: 10,
+                    filename: 'my-resume.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // Show loading state
+                const originalContent = element.innerHTML;
+                element.innerHTML = '<div class="text-center py-12"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Generating PDF...</p></div>';
+                
+                // Generate PDF
+                setTimeout(() => {
+                    html2pdf().from(element).set(opt).save().then(() => {
+                        // Restore content
+                        element.innerHTML = originalContent;
+                    });
+                }, 500);
+            }
+            
+            // Initialize with one item in each section
+            addExperienceItem();
+            addEducationItem();
+            addSkill('JavaScript');
+            addSkill('React');
+            addSkill('Node.js');
+            addProjectItem();
+            
+            // Update preview on load
+            updateResumePreview();
+        });
+    </script>
+</body>
+</html>
