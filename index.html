@@ -1475,39 +1475,6 @@ ${fullNameInput.value}`;
         
         // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', init);
-    <script>
-// Wait for page to fully load
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. FIX START BUTTONS
-    document.querySelectorAll('#start-building, #start-building-2').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.getElementById('landing-page').classList.add('hidden');
-            document.getElementById('resume-builder').classList.remove('hidden');
-            document.title = "ResumeForge - Build Your Resume";
-            window.scrollTo(0, 0);
-        });
-    });
-
-    // 2. BASIC FUNCTIONALITY
-    // Theme switcher
-    document.getElementById('theme-selector').addEventListener('change', function() {
-        document.documentElement.className = this.value;
-    });
-    
-    // Template switcher
-    document.getElementById('template-selector').addEventListener('change', function() {
-        document.getElementById('resume-preview').className = 'resume-' + this.value;
-    });
-    
-    // 3. PLACEHOLDER FOR PDF EXPORT
-    document.getElementById('export-pdf').addEventListener('click', function() {
-        alert('PDF export will work when full code is added!');
-    });
-    
-    // Add other features here as needed
-});
-</script>
-</body>
+    </script>
 </body>
 </html>
