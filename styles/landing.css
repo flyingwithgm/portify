@@ -1,0 +1,18 @@
+/* Landing page specific styles */
+.hero-gradient {
+    background-image: linear-gradient(to right, var(--primary-light), var(--secondary-light));
+}
+
+@media (prefers-color-scheme: dark) {
+    .hero-gradient {
+        background-image: linear-gradient(to right, var(--primary-dark), var(--secondary-dark));
+    }
+}
+
+.feature-card {
+    @apply transform transition-all hover:-translate-y-2;
+}
+
+.testimonial-card {
+    @apply p-6;
+}
