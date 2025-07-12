@@ -67,41 +67,41 @@
             color: transparent;
         }
         
-        .resume-modern {
-            .section-title {
-                @apply font-serif text-xl font-semibold mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white;
-            }
-            .experience-item, .education-item {
-                @apply mb-4;
-            }
+        .resume-modern .section-title {
+            @apply font-serif text-xl font-semibold mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white;
+        }
+        .resume-modern .experience-item, 
+        .resume-modern .education-item {
+            @apply mb-4;
         }
         
         .resume-classic {
             @apply border-l-2 border-primary-light dark:border-primary-dark pl-6;
-            .section-title {
-                @apply uppercase tracking-widest text-sm font-bold mb-2 text-primary-light dark:text-primary-dark;
-            }
+        }
+        .resume-classic .section-title {
+            @apply uppercase tracking-widest text-sm font-bold mb-2 text-primary-light dark:text-primary-dark;
         }
         
-        .resume-minimalist {
-            .section-title {
-                @apply text-xs font-medium tracking-widest mb-1 text-gray-500 dark:text-gray-400 border-b pb-1;
-            }
-            h1, h2, h3, h4 {
-                @apply font-normal;
-            }
-            .experience-item, .education-item {
-                @apply mb-3;
-            }
+        .resume-minimalist .section-title {
+            @apply text-xs font-medium tracking-widest mb-1 text-gray-500 dark:text-gray-400 border-b pb-1;
+        }
+        .resume-minimalist h1, 
+        .resume-minimalist h2, 
+        .resume-minimalist h3, 
+        .resume-minimalist h4 {
+            @apply font-normal;
+        }
+        .resume-minimalist .experience-item, 
+        .resume-minimalist .education-item {
+            @apply mb-3;
         }
         
-        .resume-creative {
-            .section-title {
-                @apply font-serif text-lg font-bold mb-3 flex items-center before:content-[''] before:block before:w-2 before:h-6 before:bg-gradient-to-b from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark before:mr-2;
-            }
-            .experience-item, .education-item {
-                @apply relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-primary-light dark:before:bg-primary-dark;
-            }
+        .resume-creative .section-title {
+            @apply font-serif text-lg font-bold mb-3 flex items-center before:content-[''] before:block before:w-2 before:h-6 before:bg-gradient-to-b from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark before:mr-2;
+        }
+        .resume-creative .experience-item, 
+        .resume-creative .education-item {
+            @apply relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-primary-light dark:before:bg-primary-dark;
         }
         
         .photo-preview {
@@ -126,6 +126,17 @@
         
         .badge {
             @apply bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-sm font-medium;
+        }
+        
+        /* Add this to fix the animation classes */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     </style>
 </head>
@@ -774,7 +785,8 @@
             if (theme === 'custom') {
                 document.documentElement.classList.add('theme-custom');
                 // Update CSS variable with custom color
-                document.documentElement.style.setProperty('--tw-primary', customColor);
+                document.documentElement.style.setProperty('--color-primary-light', customColor);
+                document.documentElement.style.setProperty('--color-primary-dark', customColor);
                 colorPickerContainer.classList.remove('hidden');
             } else {
                 document.documentElement.classList.remove('theme-custom');
@@ -786,7 +798,8 @@
         function handleCustomColorChange(e) {
             customColor = e.target.value;
             localStorage.setItem('customColor', customColor);
-            document.documentElement.style.setProperty('--tw-primary', customColor);
+            document.documentElement.style.setProperty('--color-primary-light', customColor);
+            document.documentElement.style.setProperty('--color-primary-dark', customColor);
         }
         
         // Handle template change
