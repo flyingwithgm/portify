@@ -68,41 +68,41 @@
             color: transparent;
         }
         
-        .resume-modern {
-            .section-title {
-                @apply font-heading text-lg font-semibold mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white tracking-wide;
-            }
-            .experience-item, .education-item {
-                @apply mb-5;
-            }
+        .resume-modern .section-title {
+            @apply font-heading text-lg font-semibold mb-3 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white tracking-wide;
+        }
+        .resume-modern .experience-item, 
+        .resume-modern .education-item {
+            @apply mb-5;
         }
         
         .resume-classic {
             @apply border-l-4 border-primary-light dark:border-primary-dark pl-6;
-            .section-title {
-                @apply uppercase tracking-widest text-sm font-bold mb-3 text-primary-light dark:text-primary-dark;
-            }
+        }
+        .resume-classic .section-title {
+            @apply uppercase tracking-widest text-sm font-bold mb-3 text-primary-light dark:text-primary-dark;
         }
         
-        .resume-minimalist {
-            .section-title {
-                @apply text-xs font-medium tracking-widest mb-2 text-gray-500 dark:text-gray-400 border-b pb-1;
-            }
-            h1, h2, h3, h4 {
-                @apply font-normal;
-            }
-            .experience-item, .education-item {
-                @apply mb-4;
-            }
+        .resume-minimalist .section-title {
+            @apply text-xs font-medium tracking-widest mb-2 text-gray-500 dark:text-gray-400 border-b pb-1;
+        }
+        .resume-minimalist h1, 
+        .resume-minimalist h2, 
+        .resume-minimalist h3, 
+        .resume-minimalist h4 {
+            @apply font-normal;
+        }
+        .resume-minimalist .experience-item, 
+        .resume-minimalist .education-item {
+            @apply mb-4;
         }
         
-        .resume-creative {
-            .section-title {
-                @apply font-serif text-lg font-bold mb-4 flex items-center before:content-[''] before:block before:w-2 before:h-6 before:bg-gradient-to-b from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark before:mr-3;
-            }
-            .experience-item, .education-item {
-                @apply relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-primary-light dark:before:bg-primary-dark;
-            }
+        .resume-creative .section-title {
+            @apply font-serif text-lg font-bold mb-4 flex items-center before:content-[''] before:block before:w-2 before:h-6 before:bg-gradient-to-b from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark before:mr-3;
+        }
+        .resume-creative .experience-item, 
+        .resume-creative .education-item {
+            @apply relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:rounded-full before:bg-primary-light dark:before:bg-primary-dark;
         }
         
         .photo-preview {
@@ -150,6 +150,11 @@
             background-color: #1f2937;
             background-image: linear-gradient(#111827 1px, transparent 1px),
                               linear-gradient(to right, #111827 1px, #1f2937 1px);
+        }
+        
+        /* Custom theme for color picker */
+        .theme-custom {
+            --tw-primary: #2563eb;
         }
     </style>
 </head>
