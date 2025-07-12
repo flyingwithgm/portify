@@ -1,0 +1,16 @@
+/* Resume builder specific styles */
+.progress-tracker {
+    @apply bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700;
+}
+
+.progress-bar {
+    @apply bg-gradient-to-r from-primary-light to-secondary-light dark:from-primary-dark dark:to-secondary-dark h-2.5 rounded-full transition-all duration-500;
+}
+
+.ai-response {
+    @apply hidden p-4 bg-blue-50 dark:bg-gray-700 rounded-lg animate-fade-in border border-blue-100 dark:border-gray-600;
+}
+
+.form-section {
+    @apply space-y-4;
+}
