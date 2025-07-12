@@ -716,9 +716,6 @@
             const colorPicker = document.getElementById('color-picker');
             const templateSelector = document.getElementById('template-selector');
             const exportPdfBtn = document.getElementById('export-pdf');
-            const progressText = document.getElementById('progress-text');
-            const progressBar = document.getElementById('progress-bar');
-            const sectionsFilled = document.getElementById('sections-filled');
             
             // AI Assistant Elements
             const aiPrompt = document.getElementById('ai-prompt');
@@ -875,7 +872,16 @@
             }
             
             function applyTemplate(template) {
-                resumePreview.className = `resume-${template}`;
+                // Remove all template classes
+                resumePreview.classList.remove(
+                    'resume-modern',
+                    'resume-classic',
+                    'resume-minimalist',
+                    'resume-creative'
+                );
+                
+                // Add the selected template class
+                resumePreview.classList.add(`resume-${template}`);
             }
             
             function handlePhotoUpload(e) {
@@ -906,12 +912,12 @@
                 // Show loading state
                 const originalText = exportPdfBtn.innerHTML;
                 exportPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+                exportPdfBtn.disabled = true;
                 
                 html2canvas(element, {
                     scale: 2,
                     logging: false,
                     useCORS: true,
-                    allowTaint: true,
                     scrollX: 0,
                     scrollY: 0,
                     windowWidth: element.scrollWidth,
@@ -923,7 +929,6 @@
                     const pageHeight = 295; // A4 height in mm
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
-                    // Add first page
                     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                     
                     // Add additional pages if content is taller than one page
@@ -942,6 +947,7 @@
                     // Restore button state
                     exportPdfBtn.classList.remove('hidden');
                     exportPdfBtn.innerHTML = originalText;
+                    exportPdfBtn.disabled = false;
                     
                     // Trigger confetti
                     confetti({
@@ -954,6 +960,7 @@
                     alert('Error generating PDF. Please try again.');
                     exportPdfBtn.classList.remove('hidden');
                     exportPdfBtn.innerHTML = originalText;
+                    exportPdfBtn.disabled = false;
                 });
             }
             
@@ -1001,7 +1008,12 @@
                     })),
                     
                     // Cover Letter
-                    coverLetter: coverLetterInput.value
+                    coverLetter: coverLetterInput.value,
+                    
+                    // Settings
+                    theme: themeSelector.value,
+                    template: templateSelector.value,
+                    customColor: colorPicker.value
                 };
                 
                 localStorage.setItem('resumeData', JSON.stringify(formData));
@@ -1077,6 +1089,20 @@
                 
                 // Cover Letter
                 if (data.coverLetter) coverLetterInput.value = data.coverLetter;
+                
+                // Settings
+                if (data.theme) {
+                    themeSelector.value = data.theme;
+                    applyTheme(data.theme);
+                }
+                if (data.template) {
+                    templateSelector.value = data.template;
+                    applyTemplate(data.template);
+                }
+                if (data.customColor) {
+                    colorPicker.value = data.customColor;
+                    customColor = data.customColor;
+                }
             }
             
             function addExperienceField(initial = false) {
@@ -1528,9 +1554,9 @@ ${fullNameInput.value}`;
                 
                 // Update UI
                 const percentage = Math.round((filledSections / totalSections) * 100);
-                progressText.textContent = `${percentage}% Complete`;
-                progressBar.style.width = `${percentage}%`;
-                sectionsFilled.textContent = `${filledSections} of ${totalSections} sections filled`;
+                document.getElementById('progress-text').textContent = `${percentage}% Complete`;
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+                document.getElementById('sections-filled').textContent = `${filledSections} of ${totalSections} sections filled`;
                 
                 // Trigger confetti if 100% complete
                 if (percentage === 100) {
